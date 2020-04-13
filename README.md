@@ -1,2 +1,2 @@
 # FYS4460
- Uordnede systemer og perkolasjon
+ Disordered systems and percolation
