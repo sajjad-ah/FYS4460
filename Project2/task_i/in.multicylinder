@@ -1,0 +1,67 @@
+# 3d Lennard-Jones liquid
+units lj
+dimension 3
+boundary p p p
+atom_style atomic
+
+lattice fcc 0.844
+region simbox block 0 20 0 20 0 20
+create_box 2 simbox
+create_atoms 1 box
+
+mass 1 1.0
+mass 2 1.0
+
+pair_style lj/cut 3.0
+pair_coeff * * 1.0 1.0 3.0
+
+label iloop
+variable idx loop 1 3
+
+variable ypos equal (33.6/3.0)*(${idx}-0.5)  
+
+label jloop
+variable jdx loop 1 3
+
+variable zpos equal (33.6/3.0)*(${jdx}-0.5)
+variable regName equal (${idx}-1)*3+${jdx}
+print "${regName}"
+
+region cyin_${regName} cylinder x ${ypos} ${zpos} ${radius} EDGE EDGE units box side in
+region cyout_${regName} cylinder x ${ypos} ${zpos} ${radius} EDGE EDGE units box side out
+
+next jdx
+jump SELF jloop
+
+next idx
+jump SELF iloop
+
+region cylinder_cut union 9 cyin_1 cyin_2 cyin_3 cyin_4 cyin_5 cyin_6 cyin_7 cyin_8 cyin_9
+region cylinder_out intersect 9 cyout_1 cyout_2 cyout_3 cyout_4 cyout_5 cyout_6 cyout_7 cyout_8 cyout_9
+
+group cylinder_atoms region cylinder_cut
+group stationary_atoms region cylinder_out
+
+set group cylinder_atoms type 2
+set group stationary_atoms type 1
+
+delete_atoms porosity cylinder_cut 0.5 25321
+
+###################### Thermalization Part ################
+velocity all create 1.5 87287
+fix 1 cylinder_atoms nve 
+fix 2 cylinder_atoms temp/berendsen 1.5 1.5 0.1
+
+thermo 10
+run 5000
+
+print "--------------  THERMALIZATION DONE ----------------"
+###################### Main run ###########################
+
+fix 3 cylinder_atoms addforce 0.1 0.0 0.0
+
+variable g atom gmask(cylinder_atoms)
+dump 1 all custom 100 dump.lammpstrj_${radius} id type x y z vx vy vz
+
+thermo 100
+run 50000

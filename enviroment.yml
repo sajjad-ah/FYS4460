@@ -1,0 +1,14 @@
+name: MDpy27
+channels:
+  - anaconda
+  - defaults
+dependencies:
+  - python=2.7
+  - scipy
+  - numpy
+  - numba
+  - matplotlib
+  - jupyter
+  - ipython
+  - ipykernel
+  - seaborn
